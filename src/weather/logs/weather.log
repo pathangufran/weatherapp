@@ -1,0 +1,22 @@
+[2026-06-28 17:27:31,670] INFO django.utils.autoreload: Watching for file changes with StatReloader
+[2026-06-28 21:42:42,492] INFO django.utils.autoreload: Watching for file changes with StatReloader
+[2026-06-28 21:43:28,872] WARNING django.request: Not Found: /city/get/
+[2026-06-28 21:43:38,087] WARNING django.request: Not Found: /city/get/
+[2026-06-28 21:44:13,583] INFO django.utils.autoreload: Watching for file changes with StatReloader
+[2026-06-28 21:44:22,266] WARNING django.request: Not Found: /cit/esget/i
+[2026-06-28 21:44:24,219] WARNING django.request: Not Found: /cities/get/i
+[2026-06-28 21:44:26,768] WARNING django.request: Unauthorized: /cities/get/
+[2026-06-28 21:47:29,940] WARNING django.request: Unsupported Media Type: /accounts/login
+[2026-06-28 21:47:46,294] WARNING accounts.views: Invalid login attempt : john_doe_92
+[2026-06-28 21:47:46,294] WARNING django.request: Unauthorized: /accounts/login
+[2026-06-28 21:47:55,821] WARNING accounts.views: Invalid login attempt : john_doe_92
+[2026-06-28 21:47:55,821] WARNING django.request: Unauthorized: /accounts/login
+[2026-06-28 21:49:27,064] INFO django.utils.autoreload: D:\weatherapp\src\weather\cities\views.py changed, reloading.
+[2026-06-28 21:49:27,625] INFO django.utils.autoreload: Watching for file changes with StatReloader
+[2026-06-28 21:50:12,035] INFO django.utils.autoreload: D:\weatherapp\src\weather\cities\views.py changed, reloading.
+[2026-06-28 21:50:12,668] INFO django.utils.autoreload: Watching for file changes with StatReloader
+[2026-06-28 21:50:26,725] INFO accounts.views: Login successful : john_doe_92
+[2026-06-28 21:50:34,041] INFO django.utils.autoreload: D:\weatherapp\src\weather\cities\views.py changed, reloading.
+[2026-06-28 21:50:34,855] INFO django.utils.autoreload: Watching for file changes with StatReloader
+[2026-06-28 21:53:04,457] INFO cities.views: john_doe_92 added city Pune
+[2026-06-28 21:53:12,350] INFO accounts.views: Login successful : john_doe_92
