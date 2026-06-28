@@ -28,4 +28,4 @@ class WeatherRecord(models.Model):
 
     def __str__(self):
         
-        return f'{self.city} - {self.temperature}°C at {self.recorded_at}'
+        return f'{self.city} - {self.temperature}°C at {self.recorded_at}.'
