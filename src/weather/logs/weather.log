@@ -21,3 +21,8 @@
 [2026-06-28 21:53:04,457] INFO cities.views: john_doe_92 added city Pune
 [2026-06-28 21:53:12,350] INFO accounts.views: Login successful : john_doe_92
 [2026-06-29 00:10:15,759] INFO django.utils.autoreload: Watching for file changes with StatReloader
+[2026-06-29 22:03:16,389] INFO django.utils.autoreload: Watching for file changes with StatReloader
+[2026-06-29 22:03:41,760] WARNING django.request: Unauthorized: /weatherapp/weather/current
+[2026-06-29 22:03:44,139] WARNING django.request: Unauthorized: /weatherapp/weather/current
+[2026-06-29 22:03:50,559] INFO django.utils.autoreload: D:\weatherapp\src\weather\weatherapp\views.py changed, reloading.
+[2026-06-29 22:03:51,337] INFO django.utils.autoreload: Watching for file changes with StatReloader
