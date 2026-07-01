@@ -9,6 +9,7 @@ from rest_framework.views import APIView
 from weatherapp.models import WeatherRecord
 from weatherapp.services import *
 from django.core.paginator import Paginator,EmptyPage
+from django.db.models import Avg,Max,Min,Count,Subquery,OuterRef
 
 logger = logging.getLogger(__name__)
 
@@ -239,3 +240,131 @@ class WeatherHistory(APIView):
             status=status.HTTP_200_OK
         )
     
+class WeatherStatistics(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self,request):
+
+        city_id = request.query_params.get('city_id')
+        if not UserCity.objects.filter(user=request.user,city_id=city_id).exists():
+            logger.warning(
+                "%s tried to access city %s",
+                request.user.username,
+                city_id
+            )
+        city = get_object_or_404(City,id=city_id)
+        queryset = WeatherRecord.objects.filter(city=city)
+        if not queryset:
+            return Response(
+                {"message": "No weather records found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        weather = queryset.aggregate(
+            total_records=Count("id"),
+            average_temp=Avg("temparature"),
+            maximum_temp=Max("temparature"),
+            minimum_temp=Min("temparature"),
+            average_humidity=Avg("humidity"),
+            average_pressure=Avg("pressure"),
+            average_wind_speed=Avg("wind_speed"),
+        )
+        logger.info(
+            "Weather statistics fetched for %s",
+            city.name
+        )
+        return Response(
+            {
+                "city": city.name,
+                "statistics": {
+                    "total_records": weather["total_records"],
+                    "average_temperature": round(weather["average_temp"],2),
+                    "maximum_temperature": weather["maximum_temp"],
+                    "minimum_temperature": weather["minimum_temp"],
+                    "average_humidity": round(weather["average_humidity"],2),
+                    "average_pressure": round(weather["average_pressure"],2),
+                    "average_wind_speed": round(weather["average_wind_speed"],2),
+                    "first_recorded_at": weather.last().recorded_at,
+                    "latest_recorded_at": weather.first().recorded_at,
+                }
+            },
+            status=status.HTTP_200_OK
+        )
+    
+class WeatherCompare(APIView):
+
+    permission_classes = [IsAuthenticated]
+    
+    def get(self,request):
+
+        city_ids = request.query_params.get('cities')
+        if not city_ids:
+            return Response(
+                {"message": "cities query parameter is required."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        try:
+            city_ids = [int(city.strip()) for city in city_ids.split(",")]
+
+        except ValueError:
+            return Response(
+                {"message": "Invalid city ids."},
+                status=status.HTTP_400_BAD_REQUEST
+            ) 
+        curr_weather = WeatherRecord.objects.filter(
+            city=OuterRef("city")
+        ).order_by("-recorded_at")
+        queryset = (
+            UserCity.objects.filter(
+            user=request.user,
+            city_id__in=city_ids
+            ).select_related("city") \
+            .annotate(
+                temperature=Subquery(curr_weather.values("temperature")[:1]),
+                feels_like=Subquery(curr_weather.values("feels_like")[:1]),
+                humidity=Subquery(curr_weather.values("humidity")[:1]),
+                pressure=Subquery(curr_weather.values("pressure")[:1]),
+                wind_speed=Subquery(curr_weather.values("wind_speed")[:1]),
+                visibility=Subquery(curr_weather.values("visibility")[:1]),
+                weather=Subquery(curr_weather.values("weather")[:1]),
+                weather_code=Subquery(curr_weather.values("weather_code")[:1]),
+                icon=Subquery(curr_weather.values("icon")[:1]),
+                recorded_at=Subquery(curr_weather.values("recorded_at")[:1]),   
+            )
+        )   
+        if not queryset.exists():
+            return Response(
+                {"message": "No matching cities found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        response = []
+        for city in queryset:
+            data = {
+                "city_id": city.city.id,
+                "city": city.city.name,
+                "state": city.city.state,
+                "country": city.city.country,
+                "temperature": city.temperature,
+                "feels_like": city.feels_like,
+                "humidity": city.humidity,
+                "pressure": city.pressure,
+                "wind_speed": city.wind_speed,
+                "visibility": city.visibility,
+                "condition": city.weather,
+                "weather_code": city.weather_code,
+                "icon": city.icon,
+                "recorded_at": city.recorded_at,
+            }
+            response.append(data)
+
+        logger.info(
+            "%s compared %d cities",
+            request.user.username,
+            len(response)
+        )
+        return Response(
+            {"count": len(response),"cities": response},
+            status=status.HTTP_200_OK
+        )
+        
