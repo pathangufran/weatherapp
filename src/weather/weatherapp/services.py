@@ -29,3 +29,21 @@ def weather_data(city_id):
         raise WeatherServiceError("Unable to fetch weather data.") from exc
     
     return response.json()
+
+def forecast_data(city_id):
+
+    WEATHER_API_URL = "http://api.weatherapi.com/v1/forecast.json"
+    try:
+        city = get_object_or_404(City, id=city_id)
+        response = requests.get(
+            WEATHER_API_URL,
+            params={"key": API_KEY,"q": city.name,},
+            timeout=10,
+        )
+
+        response.raise_for_status()
+
+    except requests.RequestException as exc:
+        raise WeatherServiceError("Unable to fetch weather data.") from exc
+    
+    return response.json()
