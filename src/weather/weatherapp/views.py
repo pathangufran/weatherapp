@@ -10,6 +10,7 @@ from weatherapp.models import WeatherRecord
 from weatherapp.services import *
 from django.core.paginator import Paginator,EmptyPage
 from django.db.models import Avg,Max,Min,Count,Subquery,OuterRef
+from weather.redis_service import RedisService
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +28,17 @@ class WeatherCurrent(APIView):
             )
 
         city = get_object_or_404(City, id=city_id)
+
+        cached_weather = RedisService.get_current_weather(city_id)
+        if cached_weather:
+            return Response(
+                {
+                    "message":"Weather fetched successfully.",
+                    "source":"redis",
+                    "data":cached_weather
+                },
+                status=status.HTTP_200_OK
+            )
 
         try:
             data = weather_data(city_id)
@@ -48,23 +60,27 @@ class WeatherCurrent(APIView):
             )
 
             logger.info("Weather record saved for %s", city.name)
+            response_data = {
+                "city": city.name,
+                "temperature": float(weather.temperature),
+                "feels_like": float(weather.feels_like),
+                "humidity": weather.humidity,
+                "pressure": weather.pressure,
+                "wind_speed": float(weather.wind_speed),
+                "wind_direction": weather.wind_direction,
+                "visibility": weather.visibility,
+                "uv_index": float(weather.uv_index),
+                "condition": weather.weather,
+                "icon": weather.icon,
+                "recorded_at": weather.recorded_at.isoformat(),
+            }
+            RedisService.set_current_weather(city_id,response_data)
+
             return Response(
                 {
                     "message": "Weather fetched successfully",
-                    "data": {
-                        "city": city.name,
-                        "temperature": weather.temperature,
-                        "feels_like": weather.feels_like,
-                        "humidity": weather.humidity,
-                        "pressure": weather.pressure,
-                        "wind_speed": weather.wind_speed,
-                        "wind_direction": weather.wind_direction,
-                        "visibility": weather.visibility,
-                        "uv_index": weather.uv_index,
-                        "condition": weather.weather,
-                        "icon": weather.icon,
-                        "recorded_at": weather.recorded_at,
-                    }
+                    "source": "weather_api",
+                    "data":response_data
                 },
                 status=status.HTTP_200_OK,
             )
@@ -96,6 +112,18 @@ class LatestWeather(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
         city = get_object_or_404(City,id=city_id)
+
+        cached_weather = RedisService.get_latest_weather(city_id)
+        if cached_weather:
+            return Response(
+                {
+                    "message": "Latest weather fetched successfully.",
+                    "source": "redis",
+                    "data": cached_weather
+                },
+                status=status.HTTP_200_OK
+            )
+
         weather = WeatherRecord.objects.get(city=city)
         if not weather:
             return Response(
@@ -103,21 +131,29 @@ class LatestWeather(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
         
+        response_data = {
+            "city": city.name,
+            "temperature": float(weather.temperature),
+            "feels_like": float(weather.feels_like),
+            "humidity": weather.humidity,
+            "pressure": weather.pressure,
+            "wind_speed": float(weather.wind_speed),
+            "wind_direction": weather.wind_direction,
+            "visibility": weather.visibility,
+            "uv_index": float(weather.uv_index),
+            "condition": weather.weather,
+            "icon": weather.icon,
+            "recorded_at": weather.recorded_at.isoformat(),
+        }
+        RedisService.set_latest_weather(city_id,response_data)
+
         return Response(
             {
-                "city": city.name,
-                "temperature": weather.temperature,
-                "feels_like": weather.feels_like,
-                "humidity": weather.humidity,
-                "pressure": weather.pressure,
-                "wind_speed": weather.wind_speed,
-                "wind_direction": weather.wind_direction,
-                "visibility": weather.visibility,
-                "uv_index": weather.uv_index,
-                "condition": weather.weather,
-                "icon": weather.icon,
-                "recorded_at": weather.recorded_at,
-            }
+                "message": "Weather fetched successfully",
+                "source": "weather_api",
+                "data":response_data
+            },
+            status=status.HTTP_200_OK,
         )
     
 class WeatherForecast(APIView):
