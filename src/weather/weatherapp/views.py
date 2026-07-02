@@ -11,6 +11,7 @@ from weatherapp.services import *
 from django.core.paginator import Paginator,EmptyPage
 from django.db.models import Avg,Max,Min,Count,Subquery,OuterRef
 from weather.redis_service import RedisService
+from weather.repository import WeatherRepository
 
 logger = logging.getLogger(__name__)
 
@@ -44,20 +45,7 @@ class WeatherCurrent(APIView):
             data = weather_data(city_id)
             current = data["current"]
 
-            weather = WeatherRecord.objects.create(
-                city=city,
-                temperature=current["temp_c"],
-                feels_like=current["feelslike_c"],
-                humidity=current["humidity"],
-                pressure=current["pressure_mb"],
-                wind_speed=current["wind_kph"],
-                wind_direction=current["wind_degree"],
-                visibility=current["vis_km"],
-                uv_index=current["uv"],
-                weather=current["condition"]["text"],
-                weather_code=current["condition"]["code"],
-                icon=current["condition"]["icon"],
-            )
+            weather = WeatherRepository.create(city,current)
 
             logger.info("Weather record saved for %s", city.name)
             response_data = {
@@ -71,10 +59,10 @@ class WeatherCurrent(APIView):
                 "visibility": weather.visibility,
                 "uv_index": float(weather.uv_index),
                 "condition": weather.weather,
+                "weather_code": weather.weather_code,
                 "icon": weather.icon,
                 "recorded_at": weather.recorded_at.isoformat(),
             }
-            RedisService.set_current_weather(city_id,response_data)
 
             return Response(
                 {
@@ -142,10 +130,10 @@ class LatestWeather(APIView):
             "visibility": weather.visibility,
             "uv_index": float(weather.uv_index),
             "condition": weather.weather,
+            "weather_code": weather.weather_code,
             "icon": weather.icon,
             "recorded_at": weather.recorded_at.isoformat(),
         }
-        RedisService.set_latest_weather(city_id,response_data)
 
         return Response(
             {

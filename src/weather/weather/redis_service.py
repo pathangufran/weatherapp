@@ -77,4 +77,14 @@ class RedisService:
         cache.delete(key)
         logger.info("CACHE DELETE : %s", key)
 
-        
+    @classmethod
+    def refresh_weather(cls,city_id,data):
+
+        cls.set_current_weather(city_id,data)
+        cls.set_latest_weather(city_id,data)
+
+    @classmethod
+    def invalidate_weather(cls, city_id):
+
+        cls.delete_current_weather(city_id)
+        cls.delete_latest_weather(city_id)
