@@ -1,6 +1,6 @@
 import logging
 from weatherapp.models import WeatherRecord
-from weather.redis_service import RedisService
+from weatherapp.redis_service import RedisService
 
 logger = logging.getLogger(__name__)
 

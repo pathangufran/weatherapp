@@ -10,8 +10,8 @@ from weatherapp.models import WeatherRecord
 from weatherapp.services import *
 from django.core.paginator import Paginator,EmptyPage
 from django.db.models import Avg,Max,Min,Count,Subquery,OuterRef
-from weather.redis_service import RedisService
-from weather.repository import WeatherRepository
+from weatherapp.redis_service import RedisService
+from weatherapp.repository import WeatherRepository
 
 logger = logging.getLogger(__name__)
 
