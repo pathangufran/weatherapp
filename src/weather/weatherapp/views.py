@@ -176,7 +176,11 @@ class WeatherForecast(APIView):
             RedisService.set_weather_forecast(city_id,data)
             
             return Response(
-                {"message": "Weather fetched successfully","data": data},
+                {
+                    "message": "Weather fetched successfully.",
+                    "source": "weather_api",
+                    "data": data
+                },
                 status=status.HTTP_200_OK,
             )
         
@@ -212,6 +216,27 @@ class WeatherHistory(APIView):
             return Response(
                 {"message": "You are not tracking this city."},
                 status=status.HTTP_403_FORBIDDEN
+            )
+        
+        cached_history = RedisService.get_weather_history(
+            city_id,
+            page,
+            limit,
+            start_date,
+            end_date
+        )
+        if cached_history:
+            logger.info(
+                "History served from Redis for %s",
+                city.name,
+            )
+            return Response(
+                {
+                    "message": "History fetched successfully.",
+                    "source": "redis",
+                    "data": cached_history
+                },
+                status=status.HTTP_200_OK
             )
 
         city = get_object_or_404(City,id=city_id)
@@ -264,14 +289,27 @@ class WeatherHistory(APIView):
             "Weather history fetched for %s",
             city.name
         )
+        response_data = {
+            "city":city.name,
+            "total_records":paginator.count,
+            "total_pages":paginator.num_pages,
+            "current_page":page,
+            "page_size":limit,
+            "history":history
+        }
+        RedisService.set_weather_history(
+            city_id,
+            page,
+            limit,
+            start_date,
+            end_date,
+            response_data
+        )
         return Response(
             {
-                "city":city.name,
-                "total_records":paginator.count,
-                "total_pages":paginator.num_pages,
-                "current_page":page,
-                "page_size":limit,
-                "history":history
+                "message": "History fetched successfully.",
+                "source": "database",
+                "data": response_data
             },
             status=status.HTTP_200_OK
         )
@@ -337,7 +375,7 @@ class WeatherStatistics(APIView):
         return Response(
             {
                 "message": "Statistics fetched successfully.",
-                "source": "redis",
+                "source": "database",
                 "data": response_data
             },
             status=status.HTTP_200_OK

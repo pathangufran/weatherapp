@@ -10,6 +10,7 @@ class RedisService:
     LATEST_WEATHER_TTL = 600
     FORECAST_WEATHER_TTL = 600
     STATISTICS_WEATHER_TTL = 600
+    HISTORY_WEATHER_TTL = 600
 
     @classmethod
     def current_weather_key(cls,city_id):
@@ -27,6 +28,15 @@ class RedisService:
     def weather_statistics_key(cls,city_id):
         return f"weather:{cls.CACHE_VERSION}:statistics:{city_id}"
 
+    @classmethod
+    def weather_history_key(cls,city_id,page,limit,start_date,end_date):
+        start_date = start_date or "none"
+        end_date = end_date or "none"
+        return (
+            f"weather:{cls.CACHE_VERSION}:history:"
+            f"{city_id}:{page}:{limit}:{start_date}:{end_date}"
+        )
+    
 
     @classmethod
     def get_current_weather(cls,city_id):
@@ -147,6 +157,46 @@ class RedisService:
         key = cls.weather_forecast_key(city_id)
         cache.delete(key)
         logger.info("CACHE DELETED : %s", key)
+
+    @classmethod
+    def get_weather_history(cls,city_id,page,limit,start_date,end_date):
+        
+        key = cls.weather_history_key(city_id,page,limit,start_date,end_date)
+        data = cache.get(key)
+        if data:
+            logger.info("CACHE HIT : %s", key)
+        else:
+            logger.info("CACHE MISS : %s", key)
+
+        return data
+    
+    @classmethod
+    def set_weather_history(cls,city_id,page,limit,start_date,end_date,data):
+
+        key = cls.weather_history_key(city_id,page,limit,start_date,end_date)
+        cache.set(
+            key,
+            data,
+            timeout=cls.HISTORY_WEATHER_TTL
+        )
+        logger.info("CACHE SET : %s", key)
+
+    @classmethod
+    def delete_weather_history(cls,city_id):
+
+        from django_redis import get_redis_connection
+
+        connection = get_redis_connection("default")
+        pattern = (
+            f"weather:{cls.CACHE_VERSION}:history:{city_id}:*"
+        )
+        for key in connection.scan_iter(pattern):
+            connection.delete(key)
+
+        logger.info(
+            "History cache deleted for city %s",
+            city_id
+        )
 
     @classmethod
     def refresh_weather(cls,city_id,data):
