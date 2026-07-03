@@ -156,13 +156,25 @@ class WeatherForecast(APIView):
                 {'message':'You are not tracking this city.'},
                 status=status.HTTP_403_FORBIDDEN
             )
+        
+        cached_forecast = RedisService.get_weather_forecast(city_id)
+        if cached_forecast:
+            return Response(
+                {
+                    "message": "Forecast fetched successfully.",
+                    "source": "redis",
+                    "data": cached_forecast
+                },
+                status=status.HTTP_200_OK
+            )
 
         city = get_object_or_404(City, id=city_id)
 
         try:
             data = forecast_data(city_id)
-            
             logger.info("Weather record saved for %s", city.name)
+            RedisService.set_weather_forecast(city_id,data)
+            
             return Response(
                 {"message": "Weather fetched successfully","data": data},
                 status=status.HTTP_200_OK,
@@ -201,7 +213,7 @@ class WeatherHistory(APIView):
                 {"message": "You are not tracking this city."},
                 status=status.HTTP_403_FORBIDDEN
             )
-        
+
         city = get_object_or_404(City,id=city_id)
         weather_set = WeatherRecord.objects.filter(city=city).order_by('-recorded_at')
         filter = {}
@@ -277,6 +289,18 @@ class WeatherStatistics(APIView):
                 request.user.username,
                 city_id
             )
+
+        cached_statistics = RedisService.get_weather_statistics(city_id)
+        if cached_statistics:
+            return Response(
+                {
+                    "message": "Statistics fetched successfully.",
+                    "source": "redis",
+                    "data": cached_statistics
+                },
+                status=status.HTTP_200_OK
+            )
+
         city = get_object_or_404(City,id=city_id)
         queryset = WeatherRecord.objects.filter(city=city)
         if not queryset:
@@ -297,20 +321,24 @@ class WeatherStatistics(APIView):
             "Weather statistics fetched for %s",
             city.name
         )
+        response_data = {
+            "total_records": weather["total_records"],
+            "average_temperature": round(weather["average_temp"],2),
+            "maximum_temperature": weather["maximum_temp"],
+            "minimum_temperature": weather["minimum_temp"],
+            "average_humidity": round(weather["average_humidity"],2),
+            "average_pressure": round(weather["average_pressure"],2),
+            "average_wind_speed": round(weather["average_wind_speed"],2),
+            "first_recorded_at": weather.last().recorded_at,
+            "latest_recorded_at": weather.first().recorded_at,
+        }
+        RedisService.set_weather_statistics(city_id,response_data)
+        
         return Response(
             {
-                "city": city.name,
-                "statistics": {
-                    "total_records": weather["total_records"],
-                    "average_temperature": round(weather["average_temp"],2),
-                    "maximum_temperature": weather["maximum_temp"],
-                    "minimum_temperature": weather["minimum_temp"],
-                    "average_humidity": round(weather["average_humidity"],2),
-                    "average_pressure": round(weather["average_pressure"],2),
-                    "average_wind_speed": round(weather["average_wind_speed"],2),
-                    "first_recorded_at": weather.last().recorded_at,
-                    "latest_recorded_at": weather.first().recorded_at,
-                }
+                "message": "Statistics fetched successfully.",
+                "source": "redis",
+                "data": response_data
             },
             status=status.HTTP_200_OK
         )

@@ -40,6 +40,7 @@ class WeatherRepository:
         }
         
         RedisService.refresh_weather(city.id,response)
+        RedisService.delete_weather_statistics(city.id)
         
         logger.info(
             "Weather stored successfully for %s",
