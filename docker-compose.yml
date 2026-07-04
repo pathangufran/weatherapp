@@ -102,6 +102,31 @@ services:
       - redis
       - postgres
 
+  flower:
+
+    build:
+      context: .
+
+    container_name: weather_flower
+
+    command: >
+      celery -A weather flower
+      --port=5555
+
+    working_dir: /app/src/weather
+
+    volumes:
+      - .:/app
+
+    env_file:
+      - .env
+
+    ports:
+      - "5555:5555"
+
+    depends_on:
+      - redis
+      - celery
 
 volumes:
 
