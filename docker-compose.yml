@@ -81,6 +81,27 @@ services:
       - redis
       - postgres
 
+  celery-beat:
+
+    build:
+      context: .
+
+    container_name: weather_celery_beat
+
+    working_dir: /app/src/weather
+
+    command: celery -A weather beat --loglevel=info
+
+    volumes:
+      - .:/app
+
+    env_file:
+      - .env
+
+    depends_on:
+      - redis
+      - postgres
+
 
 volumes:
 

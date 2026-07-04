@@ -41,3 +41,6 @@
 [2026-07-03 17:31:01,141] INFO django.utils.autoreload: /app/src/weather/weather/celery.py changed, reloading.
 [2026-07-03 17:31:03,046] INFO django.utils.autoreload: Watching for file changes with StatReloader
 [2026-07-03 17:31:19,128] INFO django.utils.autoreload: Watching for file changes with StatReloader
+[2026-07-04 12:52:18,464] INFO django.utils.autoreload: Watching for file changes with StatReloader
+[2026-07-04 12:53:32,933] INFO django.utils.autoreload: Watching for file changes with StatReloader
+[2026-07-04 12:58:29,204] INFO django.utils.autoreload: Watching for file changes with StatReloader

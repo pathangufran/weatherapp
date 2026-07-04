@@ -218,3 +218,28 @@ CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = "Asia/Kolkata"
 
 CELERY_ENABLE_UTC = True
+
+from celery.schedules import crontab
+
+####################################################
+# CELERY BEAT CONFIGURATION
+####################################################
+
+CELERY_BEAT_SCHEDULE = {
+
+    "test-task-every-minute": {
+
+        "task": "weatherapp.tasks.test_task",
+
+        "schedule": 60.0,
+
+    },
+
+    "weather-sync": {
+
+        "task": "weather.tasks.update_weather_data",
+
+        "schedule": 1800.0,
+    }
+
+}
