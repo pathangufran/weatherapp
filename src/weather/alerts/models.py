@@ -45,6 +45,19 @@ class WeatherAlert(models.Model):
             models.Index(fields=["alert_type","is_active"]),
         ]
 
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "user",
+                    "city",
+                    "alert_type",
+                    "operator",
+                    "threshold",
+                ],
+                name="unique_weather_alert",
+            ),
+        ]
+
     def __str__(self):
         return (f"{self.user.username} - " f"{self.city.name} - " f"{self.alert_type}")
     

@@ -70,3 +70,30 @@
 [2026-07-04 13:51:43,354] WARNING flower.inspector: Inspect method conf failed
 [2026-07-04 13:51:43,356] WARNING flower.inspector: Inspect method active_queues failed
 [2026-07-04 13:53:07,436] INFO flower.command: 15 detected, shutting down
+[2026-07-08 16:53:03,858] INFO flower.command: Visit me at http://0.0.0.0:5555
+[2026-07-08 16:53:03,906] INFO flower.command: Broker: redis://redis:6379/0
+[2026-07-08 16:53:03,910] INFO flower.command: Registered tasks: 
+['celery.accumulate',
+ 'celery.backend_cleanup',
+ 'celery.chain',
+ 'celery.chord',
+ 'celery.chord_unlock',
+ 'celery.chunks',
+ 'celery.group',
+ 'celery.map',
+ 'celery.starmap',
+ 'weatherapp.tasks.test_task',
+ 'weatherapp.tasks.update_weather_data']
+[2026-07-08 16:53:03,940] INFO kombu.mixins: Connected to redis://redis:6379/0
+[2026-07-08 16:53:04,199] INFO django.utils.autoreload: Watching for file changes with StatReloader
+[2026-07-08 16:53:05,033] WARNING flower.inspector: Inspect method stats failed
+[2026-07-08 16:53:05,035] WARNING flower.inspector: Inspect method registered failed
+[2026-07-08 16:53:05,037] WARNING flower.inspector: Inspect method reserved failed
+[2026-07-08 16:53:05,038] WARNING flower.inspector: Inspect method active_queues failed
+[2026-07-08 16:53:05,038] WARNING flower.inspector: Inspect method scheduled failed
+[2026-07-08 16:53:05,040] WARNING flower.inspector: Inspect method revoked failed
+[2026-07-08 16:53:05,041] WARNING flower.inspector: Inspect method conf failed
+[2026-07-08 16:53:05,043] WARNING flower.inspector: Inspect method active failed
+[2026-07-08 16:54:35,146] INFO django.utils.autoreload: /app/src/weather/weather/settings.py changed, reloading.
+[2026-07-08 16:54:37,284] INFO django.utils.autoreload: Watching for file changes with StatReloader
+[2026-07-08 16:57:00,144] INFO flower.command: 15 detected, shutting down

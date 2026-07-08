@@ -237,7 +237,7 @@ CELERY_BEAT_SCHEDULE = {
 
     "weather-sync": {
 
-        "task": "weather.tasks.update_weather_data",
+        "task": "weatherapp.tasks.update_weather_data",
 
         "schedule": 1800.0,
     }
