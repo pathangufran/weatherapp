@@ -146,8 +146,57 @@ class GetAlerts(APIView):
             status=status.HTTP_200_OK,
         )
         
+class AlertDetails(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self,request):
+
+        alert_id = request.query_params.get("alert_id")
+        if not alert_id:
+            return Response(
+                {"message":"Alert id is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        try:
+            alert = get_object_or_404(
+                WeatherAlert.objects.select_related("city"),
+                user=request.user,
+                id=alert_id
+            )
+        except WeatherAlert.DoesNotExist:
+            logger.warning(
+                "Alert not found. "
+                "User=%s Alert=%s",
+                request.user.username,
+                alert_id,
+            )
+            return Response(
+                {"message": "Alert not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
         
-        
-        
-        
-        
+        response_data = {
+            "id": alert.id,
+            "city_id": alert.city.id,
+            "city": alert.city.name,
+            "alert_type": alert.alert_type,
+            "operator": alert.operator,
+            "threshold": alert.threshold,
+            "is_active": alert.is_active,
+            "created_at": alert.created_at,
+            "updated_at": alert.updated_at,
+        }
+        logger.info(
+            "Alert fetched successfully. "
+            "User=%s Alert=%s",
+            request.user.username,
+            alert.id
+        )
+        return Response(
+            {
+                "message":"Alert fetched successfully.",
+                "data":response_data    
+            },
+            status=status.HTTP_200_OK
+        )
