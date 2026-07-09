@@ -309,9 +309,9 @@ class AlertStatus(APIView):
     permission_classes = [IsAuthenticated]
 
     def patch(self,request):
-        
+
         try:
-            alert_id = request.data.get('alert_id')
+            alert_id = request.data.get("alert_id")
             alert = get_object_or_404(
                 WeatherAlert.objects.only(
                     "id",
@@ -323,7 +323,7 @@ class AlertStatus(APIView):
                 id=alert_id
             )
 
-            is_active = request.data.get('is_active')
+            is_active = request.data.get("is_active")
             if not is_active:
                 return Response(
                     {"message":"is_active is required.",},
@@ -358,6 +358,58 @@ class AlertStatus(APIView):
         
         except Exception as exc:
             logger.exception("Failed to update alert status: %s",exc)
+            return Response(
+                {"message": "Something went wrong."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+        
+class DeleteAlert(APIView):
+    
+    permission_classes = [IsAuthenticated]
+
+    def delete(self,request):
+
+        try:
+            alert_id = request.data.get("alert_id")
+            if not alert_id:
+                return Response(
+                    {"message":"alert_id is required.",},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            alert = get_object_or_404(
+                WeatherAlert.objects.only(
+                    "id",
+                    "user_id",
+                    "city_id",
+                    "alert_type",
+                ),
+                user=request.user,
+                id=alert_id
+            )
+            logger.info(
+                "Deleting alert. User=%s Alert=%s",
+                request.user.username,
+                alert.id,
+            )
+            
+            alert.delete()
+
+            logger.info(
+                "Alert deleted successfully. User=%s Alert=%s",
+                request.user.username,
+                alert_id,
+            )
+            return Response(
+                {"message": "Alert deleted successfully."},
+                status=status.HTTP_200_OK,
+            )
+
+        except Exception as exc:
+            logger.exception(
+                "Failed to delete alert %s : %s",
+                alert_id,
+                exc,
+            )
             return Response(
                 {"message": "Something went wrong."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
