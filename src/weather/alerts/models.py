@@ -60,8 +60,6 @@ class WeatherAlert(models.Model):
 
     def __str__(self):
         return (f"{self.user.username} - " f"{self.city.name} - " f"{self.alert_type}")
-    
-
 
 class AlertNotification(models.Model):
 
