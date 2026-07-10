@@ -33,6 +33,7 @@ class WeatherAlert(models.Model):
     operator = models.CharField(max_length=5,choices=OPERATOR_CHOICES)
     threshold = models.CharField(max_length=50)
     is_active = models.BooleanField(default=True,db_index=True)
+    is_triggered = models.BooleanField(default=False,db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

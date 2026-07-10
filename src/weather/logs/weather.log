@@ -97,3 +97,28 @@
 [2026-07-08 16:54:35,146] INFO django.utils.autoreload: /app/src/weather/weather/settings.py changed, reloading.
 [2026-07-08 16:54:37,284] INFO django.utils.autoreload: Watching for file changes with StatReloader
 [2026-07-08 16:57:00,144] INFO flower.command: 15 detected, shutting down
+[2026-07-10 16:43:28,518] INFO flower.command: Visit me at http://0.0.0.0:5555
+[2026-07-10 16:43:28,576] INFO flower.command: Broker: redis://redis:6379/0
+[2026-07-10 16:43:28,582] INFO flower.command: Registered tasks: 
+['celery.accumulate',
+ 'celery.backend_cleanup',
+ 'celery.chain',
+ 'celery.chord',
+ 'celery.chord_unlock',
+ 'celery.chunks',
+ 'celery.group',
+ 'celery.map',
+ 'celery.starmap',
+ 'weatherapp.tasks.test_task',
+ 'weatherapp.tasks.update_weather_data']
+[2026-07-10 16:43:28,618] INFO kombu.mixins: Connected to redis://redis:6379/0
+[2026-07-10 16:43:29,266] INFO django.utils.autoreload: Watching for file changes with StatReloader
+[2026-07-10 16:43:29,772] WARNING flower.inspector: Inspect method conf failed
+[2026-07-10 16:43:29,778] WARNING flower.inspector: Inspect method active_queues failed
+[2026-07-10 16:43:29,781] WARNING flower.inspector: Inspect method reserved failed
+[2026-07-10 16:43:29,781] WARNING flower.inspector: Inspect method scheduled failed
+[2026-07-10 16:43:29,782] WARNING flower.inspector: Inspect method stats failed
+[2026-07-10 16:43:29,790] WARNING flower.inspector: Inspect method registered failed
+[2026-07-10 16:43:29,790] WARNING flower.inspector: Inspect method revoked failed
+[2026-07-10 16:43:29,794] WARNING flower.inspector: Inspect method active failed
+[2026-07-10 16:44:30,265] ERROR flower.events: Failed to capture events: 'Error 111 connecting to redis:6379. Connection refused.', trying again in 1 seconds.
