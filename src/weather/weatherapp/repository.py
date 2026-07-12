@@ -1,6 +1,7 @@
 import logging
 from weatherapp.models import WeatherRecord
 from weatherapp.redis_service import RedisService
+from alerts.services import AlertService
 
 logger = logging.getLogger(__name__)
 
@@ -42,10 +43,17 @@ class WeatherRepository:
         RedisService.refresh_weather(city.id,response)
         RedisService.delete_weather_statistics(city.id)
         RedisService.delete_weather_history(city.id)
+
+        logger.info(
+            "Starting alert processing for city %s",
+            city.name,
+        )
+        AlertService.process_alerts(weather)
         
         logger.info(
-            "Weather stored successfully for %s",
-            city.name
+            "Alert processing completed for city %s",
+            city.name,
         )
+        
         return weather
     
