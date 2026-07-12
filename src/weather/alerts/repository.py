@@ -3,7 +3,7 @@ from alerts.models import WeatherAlert,AlertNotification
 
 logger = logging.getLogger(__name__)
 
-class NotificationService:
+class NotificationRepository:
 
     @staticmethod
     def notification_exists(alert,weather_record):
