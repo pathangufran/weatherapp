@@ -8,6 +8,7 @@ from django.shortcuts import get_object_or_404
 from alerts.models import WeatherAlert,AlertNotification
 from cities.models import City,UserCity
 from django.core.paginator import Paginator,EmptyPage
+from alerts.utils import notification_response
 
 logger = logging.getLogger(__name__)
 
@@ -408,6 +409,141 @@ class DeleteAlert(APIView):
             logger.exception(
                 "Failed to delete alert %s : %s",
                 alert_id,
+                exc,
+            )
+            return Response(
+                {"message": "Something went wrong."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+        
+class GetNotifications(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self,request):
+
+        try:
+            page = int(request.query_params.get("page",1))
+            limit = int(request.query_params.get("limit",10))
+            is_read = request.query_params.get("is_read")
+            
+            queryset = (
+                AlertNotification.objects.select_related(
+                    "alert",
+                    "alert__city",
+                    "weather_record"
+                )
+                .only(
+                    "id",
+                    "message",
+                    "is_read",
+                    "created_at",
+                    "alert__city__name",
+                    "weather_record__temperature",
+                    "weather_record__humidity",
+                    "weather_record__pressure",
+                    "weather_record__wind_speed",
+                    "weather_record__weather"
+                )
+                .filter(alert__user=request.user)
+                .order_by("-created_at")
+            )
+            if is_read is not None:
+                queryset = queryset.filter(is_read=is_read)
+
+            paginator = Paginator(queryset,limit)
+            try:
+                notifications = paginator.page(page)
+
+            except EmptyPage:
+                return Response(
+                    {"message": "Invalid page number."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+            
+            data = [notification_response(notification) for notification in notifications]
+
+            logger.info(
+                "Fetched %s notifications for user %s",
+                len(data),
+                request.user.username,
+            )
+            return Response(
+                {
+                    "message": "Notifications fetched successfully.",
+                    "count": paginator.count,
+                    "total_pages": paginator.num_pages,
+                    "current_page": page,
+                    "page_size": limit,
+                    "data": data,
+                },
+                status=status.HTTP_200_OK,
+            )
+        
+        except ValueError:
+            return Response(
+                {"message": "Invalid page or limit."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        
+        except Exception as exc:
+            logger.exception(
+                "Failed to fetch notifications : %s",
+                exc,
+            )
+            return Response(
+                {"message": "Something went wrong."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+        
+class NotificationDetails(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self,request):
+
+        try:
+            notification_id = request.query_params.get('notification_id')
+            
+            notification = get_object_or_404(
+                AlertNotification.objects.select_related(
+                    "alert",
+                    "alert__city",
+                    "weather_record",
+                )
+                .only(
+                    "id",
+                    "message",
+                    "is_read",
+                    "created_at",
+                    "alert__user_id",
+                    "alert__city__name",
+                    "weather_record__temperature",
+                    "weather_record__humidity",
+                    "weather_record__pressure",
+                    "weather_record__wind_speed",
+                    "weather_record__weather",
+                ),
+                id=notification_id,
+                alert__user=request.user
+            )
+            logger.info(
+                "Notification %s fetched successfully for user %s",
+                notification.id,
+                request.user.username,
+            )
+            return Response(
+                {
+                    "message": "Notification fetched successfully.",
+                    "data": notification_response(notification),
+                },
+                status=status.HTTP_200_OK,
+            )
+        
+        except Exception as exc:
+            logger.exception(
+                "Failed to fetch notification %s : %s",
+                notification_id,
                 exc,
             )
             return Response(
