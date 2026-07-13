@@ -550,3 +550,68 @@ class NotificationDetails(APIView):
                 {"message": "Something went wrong."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+        
+class NotificationRead(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def patch(self,request):
+
+        try:
+            notification_id = request.query_params.get("notification_id")
+            
+            notification = get_object_or_404(
+                AlertNotification.objects.only(
+                    "id",
+                    "is_read",
+                    "alert__user_id",
+                ),
+                id=notification_id,
+                alert__user=request.user,
+            )
+            if notification.is_read:
+                logger.info(
+                    "Notification %s is already marked as read by user %s",
+                    notification.id,
+                    request.user.username,
+                )
+                return Response(
+                    {
+                        "message": "Notification is already marked as read.",
+                        "data": {
+                            "id": notification.id,
+                            "is_read": notification.is_read,
+                        }
+                    },
+                    status=status.HTTP_200_OK,
+                )
+            
+            notification.is_read = True
+            notification.save(update_fields=["is_read"])
+            logger.info(
+                "Notification %s marked as read by user %s",
+                notification.id,
+                request.user.username,
+            )
+            return Response(
+                {
+                    "message": "Notification marked as read successfully.",
+                    "data": {
+                        "id": notification.id,
+                        "is_read": notification.is_read,
+                    }
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        except Exception as exc:
+            logger.exception(
+                "Failed to mark notification %s as read: %s",
+                notification_id,
+                exc,
+            )
+            return Response(
+                {"message": "Something went wrong."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+        
