@@ -651,3 +651,48 @@ class NotificationAllRead(APIView):
                 {"message": "Something went wrong."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+class NotificationDelete(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def delete(self,request):
+
+        try:
+            notification_id = request.data.get("notification_id")
+            
+            notification = get_object_or_404(
+                AlertNotification.objects.only(
+                    "id",
+                    "alert__user_id",
+                ),
+                id=notification_id,
+                alert__user=request.user
+            )
+            logger.info(
+                "Deleting notification %s for user %s",
+                notification.id,
+                request.user.username,
+            )
+
+            notification.delete()
+
+            logger.info(
+                "Notification %s deleted successfully",
+                notification_id,
+            )
+            return Response(
+                {"message": "Notification deleted successfully."},
+                status=status.HTTP_200_OK,
+            )
+
+        except Exception as exc:
+            logger.exception(
+                "Failed to delete notification %s : %s",
+                notification_id,
+                exc,
+            )
+            return Response(
+                {"message": "Something went wrong."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
