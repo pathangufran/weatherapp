@@ -1,7 +1,7 @@
 from django.urls import path
 from alerts.views import CreateAlert,GetAlerts,AlertDetails, \
                         UpdateAlert,AlertStatus,DeleteAlert,GetNotifications, \
-                        NotificationDetails,NotificationRead
+                        NotificationDetails,NotificationRead,NotificationAllRead
 
 urlpatterns = [
     path('api/create',CreateAlert.as_view(),name='api_alerts'),
@@ -12,5 +12,6 @@ urlpatterns = [
     path('api/delete',DeleteAlert.as_view(),name='api_delete'),
     path('api/notifications',GetNotifications.as_view(),name='api_notifications'),
     path('api/notification/details',NotificationDetails.as_view(),name='api_notification_details'),
-    path('api/notification/read',NotificationRead.as_view(),name='api_notification_read')
+    path('api/notification/read',NotificationRead.as_view(),name='api_notification_read'),
+    path('api/notification/read/all',NotificationAllRead.as_view(),name='api_notification_read_all')
 ]

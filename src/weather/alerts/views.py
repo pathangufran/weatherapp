@@ -615,3 +615,39 @@ class NotificationRead(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
         
+class NotificationAllRead(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def patch(self,request):
+
+        try:
+
+            updated_count = (
+                AlertNotification.objects.filter(
+                    alert__user=request.user,
+                    is_read=False
+                ).update(is_read=True)
+            )
+            logger.info(
+                "User %s marked %s notifications as read",
+                request.user.username,
+                updated_count,
+            )
+            return Response(
+                {
+                    "message": "All notifications marked as read successfully.",
+                    "updated_count": updated_count,
+                },
+                status=status.HTTP_200_OK,
+            )
+        
+        except Exception as exc:
+            logger.exception(
+                "Failed to mark all notifications as read: %s",
+                exc,
+            )
+            return Response(
+                {"message": "Something went wrong."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
