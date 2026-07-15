@@ -12,7 +12,7 @@ class AlertRedisService:
     UNREAD_COUNT_TTL = 1800
 
     @classmethod
-    def get_alert_key(cls,prefix,user_id,suffix=""):
+    def build_key(cls,prefix,user_id,suffix=""):
         
         key = f"{prefix}:{cls.CACHE_VERSION}:user:{user_id}"
 
@@ -22,7 +22,7 @@ class AlertRedisService:
         return key
 
     @classmethod
-    def get_alert_data(cls,key):
+    def get_data(cls,key):
 
         data = cache.get(key)
         if data:
@@ -33,7 +33,7 @@ class AlertRedisService:
         return data
     
     @classmethod
-    def set_alert_data(cls,key,data):
+    def set_data(cls,key,data):
         
         cache.set(
             key,
@@ -43,13 +43,13 @@ class AlertRedisService:
         logger.info("Redis Cache SET : %s",key)
 
     @classmethod
-    def delete_alert_data(cls,key):
+    def delete_data(cls,key):
 
         cache.delete(key)
         logger.info("Redis Cache DELETE : %s",key)
 
     @classmethod
-    def delete_alert_pattern(cls,key,pattern):
+    def delete_pattern(cls,key,pattern):
 
         connection = get_redis_connection("default")
 
@@ -69,5 +69,19 @@ class AlertRedisService:
     def invalidate_alert_cache(cls, user_id):
 
         pattern = f"alerts:{cls.CACHE_VERSION}:user:{user_id}*"
+
+        cls.delete_pattern(pattern)
+
+    @classmethod
+    def invalidate_notification_cache(cls, user_id):
+
+        pattern = f"notifications:{cls.CACHE_VERSION}:user:{user_id}*"
+
+        cls.delete_pattern(pattern)
+
+    @classmethod
+    def invalidate_unread_cache(cls, user_id):
+
+        pattern = f"notifications:{cls.CACHE_VERSION}:user:{user_id}:unread*"
 
         cls.delete_pattern(pattern)

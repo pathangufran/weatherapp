@@ -96,13 +96,13 @@ class GetAlerts(APIView):
 
         suffix = f"{city_id or 'all'}:{alert_type or 'all'}:{is_active or 'all'}"
 
-        cache_key = AlertRedisService.get_alert_key(
+        cache_key = AlertRedisService.build_key(
             prefix="alerts",
             user_id=request.user.id,
             suffix=suffix,
         )
 
-        cached_alert = AlertRedisService.get(cache_key)
+        cached_alert = AlertRedisService.get_data(cache_key)
 
         if cached_alert:
             return Response(
@@ -152,10 +152,7 @@ class GetAlerts(APIView):
             }
             alerts.append(data)
 
-        AlertRedisService.set_alert_data(
-            cache_key,
-            alerts
-        )
+        AlertRedisService.set_data(cache_key,alerts)
 
         logger.info(
             "Fetched %s alerts for user %s",
@@ -453,6 +450,19 @@ class GetNotifications(APIView):
             page = int(request.query_params.get("page",1))
             limit = int(request.query_params.get("limit",10))
             is_read = request.query_params.get("is_read")
+
+            suffix = f"{page}:{limit}:{is_read or "all"}"
+            cache_key = AlertRedisService.build_key(
+                prefix="notifications",
+                user_id=request.user.id,
+                suffix=suffix,
+            )
+            cached_data = AlertRedisService.get_data(cache_key)
+            if cached_data:
+                logger.info(
+                    "Returning notifications from Redis."
+                )
+                return Response(cached_data,status=status.HTTP_200_OK)
             
             queryset = (
                 AlertNotification.objects.select_related(
@@ -488,24 +498,27 @@ class GetNotifications(APIView):
                     status=status.HTTP_404_NOT_FOUND,
                 )
             
-            data = [notification_response(notification) for notification in notifications]
+            notification_list = [
+                notification_response(notification) for notification in notifications
+            ]
+
+            data = {
+                "message": "Notifications fetched successfully.",
+                "count": paginator.count,
+                "total_pages": paginator.num_pages,
+                "current_page": page,
+                "page_size": limit,
+                "data": notification_list,
+            }
+
+            AlertRedisService.set_data(cache_key,data)
 
             logger.info(
                 "Fetched %s notifications for user %s",
-                len(data),
+                len(notification_list),
                 request.user.username,
             )
-            return Response(
-                {
-                    "message": "Notifications fetched successfully.",
-                    "count": paginator.count,
-                    "total_pages": paginator.num_pages,
-                    "current_page": page,
-                    "page_size": limit,
-                    "data": data,
-                },
-                status=status.HTTP_200_OK,
-            )
+            return Response(data,status=status.HTTP_200_OK)
         
         except ValueError:
             return Response(
@@ -614,10 +627,15 @@ class NotificationRead(APIView):
                 )
             
             notification.is_read = True
+
             notification.save(update_fields=["is_read"])
+
+            AlertRedisService.invalidate_notification_cache(request.user.id)
+
+            AlertRedisService.invalidate_unread_cache(request.user.id)
+
             logger.info(
-                "Notification %s marked as read by user %s",
-                notification.id,
+                "Notification cache invalidated. User=%s",
                 request.user.username,
             )
             return Response(
@@ -656,10 +674,14 @@ class NotificationAllRead(APIView):
                     is_read=False
                 ).update(is_read=True)
             )
+
+            AlertRedisService.invalidate_notification_cache(request.user.id)
+
+            AlertRedisService.invalidate_unread_cache(request.user.id)
+            
             logger.info(
-                "User %s marked %s notifications as read",
+                "Notification cache invalidated after mark-all-read. User=%s",
                 request.user.username,
-                updated_count,
             )
             return Response(
                 {
@@ -704,9 +726,13 @@ class NotificationDelete(APIView):
 
             notification.delete()
 
+            AlertRedisService.invalidate_notification_cache(request.user.id)
+
+            AlertRedisService.invalidate_unread_cache(request.user.id)
+
             logger.info(
-                "Notification %s deleted successfully",
-                notification_id,
+                "Notification cache invalidated after delete. User=%s",
+                request.user.username,
             )
             return Response(
                 {"message": "Notification deleted successfully."},
