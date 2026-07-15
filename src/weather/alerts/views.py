@@ -9,6 +9,7 @@ from alerts.models import WeatherAlert,AlertNotification
 from cities.models import City,UserCity
 from django.core.paginator import Paginator,EmptyPage
 from alerts.utils import notification_response
+from alerts.redis_service import AlertRedisService
 
 logger = logging.getLogger(__name__)
 
@@ -65,13 +66,11 @@ class CreateAlert(APIView):
                 operator=operator,
                 threshold=threshold,
             )
-            logger.info(
-                "Weather alert created successfully. "
-                "User=%s City=%s Alert=%s",
-                request.user.username,
-                city.name,
-                alert_type,
-            )
+
+            AlertRedisService.invalidate_alert_cache(request.user.id)
+
+            alert.save()
+
         except IntegrityError:
             logger.exception("Duplicate weather alert.")
             return Response(
@@ -94,6 +93,27 @@ class GetAlerts(APIView):
         city_id = request.query_params.get("city_id")
         alert_type = request.query_params.get("alert_type")
         is_active = request.query_params.get("is_active")
+
+        suffix = f"{city_id or 'all'}:{alert_type or 'all'}:{is_active or 'all'}"
+
+        cache_key = AlertRedisService.get_alert_key(
+            prefix="alerts",
+            user_id=request.user.id,
+            suffix=suffix,
+        )
+
+        cached_alert = AlertRedisService.get(cache_key)
+
+        if cached_alert:
+            return Response(
+                {
+                    "message": "Alerts fetched successfully.",
+                    "source": "redis",
+                    "data": cached_alert,
+                },
+                status=status.HTTP_200_OK,
+            )
+            
         
         filters = {}
         if city_id:
@@ -131,6 +151,11 @@ class GetAlerts(APIView):
                 "created_at": alert.created_at,    
             }
             alerts.append(data)
+
+        AlertRedisService.set_alert_data(
+            cache_key,
+            alerts
+        )
 
         logger.info(
             "Fetched %s alerts for user %s",
@@ -266,10 +291,11 @@ class UpdateAlert(APIView):
 
             alert.save()
 
+            AlertRedisService.invalidate_alert_cache(request.user.id)
+
             logger.info(
-                "Alert updated successfully. User=%s Alert=%s",
+                "Alert cache invalidated after update. User=%s",
                 request.user.username,
-                alert.id,
             )
             return Response(
                 {
@@ -339,11 +365,11 @@ class AlertStatus(APIView):
             alert.is_active = is_active
             alert.save(update_fields=["is_active","updated_at",])
 
+            AlertRedisService.invalidate_alert_cache(request.user.id)
+
             logger.info(
-                "Alert status updated. User=%s Alert=%s Status=%s",
+                "Alert cache invalidated after status change. User=%s",
                 request.user.username,
-                alert.id,
-                alert.is_active
             )
             return Response(
                 {
@@ -395,10 +421,11 @@ class DeleteAlert(APIView):
             
             alert.delete()
 
+            AlertRedisService.invalidate_alert_cache(request.user.id)
+
             logger.info(
-                "Alert deleted successfully. User=%s Alert=%s",
+                "Alert cache invalidated after delete. User=%s",
                 request.user.username,
-                alert_id,
             )
             return Response(
                 {"message": "Alert deleted successfully."},

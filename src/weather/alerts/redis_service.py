@@ -64,3 +64,10 @@ class AlertRedisService:
             deleted,
             pattern,
         )
+        
+    @classmethod
+    def invalidate_alert_cache(cls, user_id):
+
+        pattern = f"alerts:{cls.CACHE_VERSION}:user:{user_id}*"
+
+        cls.delete_pattern(pattern)
