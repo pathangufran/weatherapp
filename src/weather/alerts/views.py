@@ -749,3 +749,57 @@ class NotificationDelete(APIView):
                 {"message": "Something went wrong."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+        
+class NotificationUnreadCount(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self,request):
+        
+        try:
+            cached_count = AlertRedisService.get_unread_count(request.user.id)
+            if cached_count:
+                logger.info(
+                    "Unread count served from Redis. User=%s",
+                    request.user.username,
+                )
+                return Response(
+                    {
+                        "message": "Unread notification count fetched successfully.",
+                        "source": "redis",
+                        "unread_count": cached_count,
+                    },
+                    status=status.HTTP_200_OK,
+                )
+            
+            unread_count = (
+                AlertNotification.objects.filter(
+                    alert__user=request.user,
+                    is_read=False
+                ).count()
+            )
+
+            AlertRedisService.set_unread_count(request.user.id,unread_count)
+
+            logger.info(
+                "Unread count cached for user %s",
+                request.user.username,
+            )
+            return Response(
+                {
+                    "message": "Unread notification count fetched successfully.",
+                    "source": "database",
+                    "unread_count": unread_count,
+                },
+                status=status.HTTP_200_OK,
+            )
+        
+        except Exception as exc:
+            logger.exception(
+                "Failed to fetch unread notification count: %s",
+                exc,
+            )
+            return Response(
+                {"message": "Something went wrong."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )

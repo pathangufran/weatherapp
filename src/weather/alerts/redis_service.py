@@ -85,3 +85,25 @@ class AlertRedisService:
         pattern = f"notifications:{cls.CACHE_VERSION}:user:{user_id}:unread*"
 
         cls.delete_pattern(pattern)
+
+    @classmethod
+    def get_unread_count(cls, user_id):
+
+        key = cls.build_key(
+            prefix="notifications",
+            user_id=user_id,
+            suffix="unread",
+        )
+
+        return cls.get_data(key)
+    
+    @classmethod
+    def set_unread_count(cls,user_id,count):
+
+        key = cls.build_key(
+            prefix="notifications",
+            user_id=user_id,
+            suffix="unread",
+        )
+
+        cls.set_data(key,count)
