@@ -37,3 +37,34 @@ class DashboardSummary(APIView):
                 {"message": "Something went wrong."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+        
+class DashboardWeatherAnalytics(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self,request):
+
+        try:
+            analytics = DashboardService.get_weather_analytics(request.user)
+            
+            logger.info(
+                "Weather analytics fetched successfully for user %s",
+                request.user.username,
+            )
+            return Response(
+                {
+                    "message": "Weather analytics fetched successfully.",
+                    "data": analytics,
+                },
+                status=status.HTTP_200_OK,
+            )
+        
+        except Exception as exc:
+            logger.exception(
+                "Failed to fetch weather analytics: %s",
+                exc,
+            )
+            return Response(
+                {"message": "Something went wrong."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )

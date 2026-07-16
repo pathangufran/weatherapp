@@ -1,4 +1,4 @@
-from django.db.models import Count,Q
+from django.db.models import Count,Q,Avg,Min,Max
 from alerts.models import WeatherAlert,AlertNotification
 from cities.models import UserCity
 from weatherapp.models import WeatherRecord
@@ -48,3 +48,26 @@ class DashboardService:
             "unread_notifications": notifications["unread_notifications"],
 
         }
+    
+    @staticmethod
+    def get_weather_analytics(user):
+
+        analytics = (
+            WeatherRecord.objects.filter(
+                city__city_user__user=user
+            )
+            .aggregate(
+                average_temperature=Avg("temperature"),
+                highest_temperature=Max("temperature"),
+                lowest_temperature=Min("temperature"),
+                average_humidity=Avg("humidity"),
+                highest_humidity=Max("humidity"),
+                lowest_humidity=Min("humidity"),
+                average_pressure=Avg("pressure"),
+                average_wind_speed=Avg("wind_speed"),
+                average_visibility=Avg("visibility"),
+                average_uv_index=Avg("uv_index"),
+            )
+        )
+
+        return analytics
