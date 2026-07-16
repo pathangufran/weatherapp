@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'analytics',
     'cities',
     'weatherapp',
+    'dashboard',
     'rest_framework',
 ]
 

@@ -23,5 +23,6 @@ urlpatterns = [
     path('alerts/', include('alerts.urls')),
     path('analytics/', include('analytics.urls')),
     path('cities/', include('cities.urls')),
-    path('weatherapp/', include('weatherapp.urls'))
+    path('weatherapp/', include('weatherapp.urls')),
+    path('dashboard/', include('dashboard.urls'))
 ]
