@@ -1,7 +1,10 @@
 from django.db.models import Count,Q,Avg,Min,Max
 from alerts.models import WeatherAlert,AlertNotification
-from cities.models import UserCity
+from cities.models import City,UserCity
 from weatherapp.models import WeatherRecord
+from datetime import timedelta
+from django.utils import timezone
+from django.db.models.functions import TruncDate
 
 class DashboardService:
 
@@ -71,3 +74,53 @@ class DashboardService:
         )
 
         return analytics
+
+    @staticmethod
+    def get_weather_trend(user,days):
+
+        start_date = timezone.now() - timedelta(days=days)
+
+        weather_trend = (
+            WeatherRecord.objects.filter(
+                city__city_users__user=user,
+                created_at__gte=start_date
+            )
+            .annotate(
+                date=TruncDate("created_at")
+            )
+            .values("date")
+            .annotate(
+                average_temperature=Avg("temperature"),
+                average_humidity=Avg("humidity"),
+                average_pressure=Avg("pressure"),
+            )
+            .order_by("date")
+        )
+        
+        return list(weather_trend)
+    
+    @staticmethod
+    def get_city_analytics(user):
+
+        city_analytics = (
+
+            City.objects.filter(city_user__user=user).annotate(
+                weather_records=Count("weather_records"),
+                average_temperature=Avg("weather_records__temperature"),
+                highest_temperature=Max("weather_records__temperature"),
+                lowest_temperature=Min("weather_records__temperature"),
+                average_humidity=Avg("weather_records__humidity")
+            )
+            .values(
+                "id",
+                "name",
+                "weather_records",
+                "average_temperature",
+                "highest_temperature",
+                "lowest_temperature",
+                "average_humidity"
+            )
+            .order_by("name")
+        )
+        
+        return list(city_analytics)

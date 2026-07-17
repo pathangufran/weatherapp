@@ -45,6 +45,7 @@ class DashboardWeatherAnalytics(APIView):
     def get(self,request):
 
         try:
+            
             analytics = DashboardService.get_weather_analytics(request.user)
             
             logger.info(
@@ -62,6 +63,83 @@ class DashboardWeatherAnalytics(APIView):
         except Exception as exc:
             logger.exception(
                 "Failed to fetch weather analytics: %s",
+                exc,
+            )
+            return Response(
+                {"message": "Something went wrong."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+        
+class WeatherTrends(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def  get(self,request):
+
+        try:
+
+            days = int(request.query_params.get("days",7))
+
+            if days <= 0:
+                return Response(
+                    {"message": "days must be greater than zero."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            
+            trend = DashboardService.get_weather_trend(request.user,days)
+            logger.info(
+                "Weather trend fetched successfully. User=%s Days=%s",
+                request.user.username,
+                days,
+            )
+            return Response(
+                {
+                    "message": "Weather trend fetched successfully.",
+                    "data": trend,
+                },
+                status=status.HTTP_200_OK,
+            )
+        
+        except ValueError:
+            return Response(
+                {"message": "Invalid value for days."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        
+        except Exception as exc:
+            logger.exception(
+                "Failed to fetch weather trend: %s",
+                exc,
+            )
+            return Response(
+                {"message": "Something went wrong."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+        
+class DashboardCityAnalytics(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self,request):
+
+        try:
+
+            analytics = DashboardService.get_city_analytics(request.user)
+            logger.info(
+                "City analytics fetched successfully. User=%s",
+                request.user.username,
+            )
+            return Response(
+                {
+                    "message": "City analytics fetched successfully.",
+                    "data": analytics,
+                },
+                status=status.HTTP_200_OK,
+            )
+        
+        except Exception as exc:
+            logger.exception(
+                "Failed to fetch city analytics: %s",
                 exc,
             )
             return Response(
