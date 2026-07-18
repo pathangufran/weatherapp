@@ -5,6 +5,7 @@ from weatherapp.models import WeatherRecord
 from datetime import timedelta
 from django.utils import timezone
 from django.db.models.functions import TruncDate
+from alerts.models import WeatherAlert,AlertNotification
 
 class DashboardService:
 
@@ -124,3 +125,54 @@ class DashboardService:
         )
         
         return list(city_analytics)
+
+    @staticmethod
+    def get_alert_analytics(user):
+
+        alert_analytics = (
+            WeatherAlert.objects.filter(
+                weather_alerts__user=user
+            ).aggregate(
+                total_alerts=Count("id"),
+                active_alerts=Count("id",filter=Q(is_active=True)),
+                inactive_alerts=Count("id",filter=Q(is_active=False)),
+                triggered_alerts=Count("id",filter=Q(is_triggered=True)),
+                temperature_alerts=Count("id",filter=Q(alert_type="tempature")),
+                temperature_alerts=Count("id",filter=Q(alert_type="humidity")),
+                temperature_alerts=Count("id",filter=Q(alert_type="wind_speed")),
+                temperature_alerts=Count("id",filter=Q(alert_type="pressure"))
+            )
+        )
+
+        return alert_analytics
+    
+    @staticmethod
+    def get_notification_analytics(user):
+
+        today = timezone.now().date()
+        start = timezone.now() - timedelta(days=7)
+
+        notification_analytics = (
+            AlertNotification.objects.filter(alert__user=user).aggregate(
+                total_notifications=Count("id"),
+                read_notifications=Count("id",filter=Q(is_read=True)),
+                unread_notifications=Count("id",filter=Q(is_read=False)),
+                today_notifications=Count("id",filter=Q(created_at__date=today)),
+                this_week_notifications=Count("id",filter=Q(created_at__gte=start))
+            )
+        )
+
+        total = notification_analytics["total_notifications"] or 0
+        read = notification_analytics["read_notifications"] or 0
+        unread = notification_analytics["unread_notifications"] or 0
+
+        if total > 0:
+            notification_analytics["read_percentage"] = round(
+                (read / total) * 100,2)
+            notification_analytics["unread_percentage"] = round(
+                (unread / total) * 100,2)
+        else:
+            notification_analytics["read_percentage"] = 0
+            notification_analytics["unread_percentage"] = 0
+
+        return notification_analytics

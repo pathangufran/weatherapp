@@ -146,3 +146,65 @@ class DashboardCityAnalytics(APIView):
                 {"message": "Something went wrong."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+        
+class DashboardAlertAnalytics(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self,request):
+
+        try:
+            analytics = DashboardService.get_alert_analytics(request.user)
+            logger.info(
+                "Alert analytics fetched successfully. User=%s",
+                request.user.username,
+            )
+            return Response(
+                {
+                    "message": "Alert analytics fetched successfully.",
+                    "data": analytics,
+                },
+                status=status.HTTP_200_OK,
+            )
+        
+        except Exception as exc:
+            logger.exception(
+                "Failed to fetch alert analytics: %s",
+                exc,
+            )
+            return Response(
+                {"message": "Something went wrong."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+        
+class DashboardNotificationAnalytics(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self,request):
+
+        try:
+            analytics = DashboardService.get_notification_analytics(
+                request.user,
+            )
+            logger.info(
+                "Notification analytics fetched successfully. User=%s",
+                request.user.username,
+            )
+            return Response(
+                {
+                    "message": "Notification analytics fetched successfully.",
+                    "data": analytics,
+                },
+                status=status.HTTP_200_OK,
+            )
+        
+        except Exception as exc:
+            logger.exception(
+                "Failed to fetch notification analytics: %s",
+                exc,
+            )
+            return Response(
+                {"message": "Something went wrong."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
