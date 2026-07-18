@@ -208,3 +208,49 @@ class DashboardNotificationAnalytics(APIView):
                 {"message": "Something went wrong."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+class DashboardActivity(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self,request):
+    
+        try:
+            limit = int(request.query_params.get("limit",10))
+            if limit <= 0:
+                return Response(
+                    {"message": "limit must be greater than zero."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            
+            activity = DashboardService.get_recent_activity(
+                request.user,limit
+            )
+            logger.info(
+                "Recent activity fetched successfully. User=%s",
+                request.user.username,
+            )
+            return Response(
+                {
+                    "message": "Recent activity fetched successfully.",
+                    "count": len(activity),
+                    "data": activity,
+                },
+                status=status.HTTP_200_OK,
+            )
+        
+        except ValueError:
+            return Response(
+                {"message": "Invalid limit value."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        
+        except Exception as exc:
+            logger.exception(
+                "Failed to fetch recent activity: %s",
+                exc,
+            )
+            return Response(
+                {"message": "Something went wrong."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )

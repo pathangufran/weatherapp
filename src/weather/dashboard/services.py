@@ -6,6 +6,7 @@ from datetime import timedelta
 from django.utils import timezone
 from django.db.models.functions import TruncDate
 from alerts.models import WeatherAlert,AlertNotification
+from itertools import chain
 
 class DashboardService:
 
@@ -176,3 +177,94 @@ class DashboardService:
             notification_analytics["unread_percentage"] = 0
 
         return notification_analytics
+    
+    @staticmethod
+    def get_recent_activity(user,limit):
+
+        weather_records = (
+            WeatherRecord.objects.filter(
+                city__city_users__user=user
+            )
+            .select_related("city")
+            .only(
+                "city__name",
+                "temperature",
+                "created_at",
+            )
+            .order_by("-created_at")[:limit]
+        )
+
+        weather_activity = []
+        for record in weather_records:
+            data = {
+                "type": "weather",
+                "title": "Weather Updated",
+                "description": (
+                    f"Latest weather synced for "
+                    f"{record.city.name}."
+                ),
+                "city": record.city.name,
+                "created_at": record.created_at,
+            }
+            weather_activity.append(data)
+
+        alerts = (
+            WeatherAlert.objects.filter(user=user)
+            .select_related("city")
+            .only(
+                "city__name",
+                "alert_type",
+                "created_at",
+            )
+            .order_by("-created_at")[:limit]
+        )
+
+        alert_activity = []
+        for alert in alerts:
+            data = {
+                "type": "alert",
+                "title": f"{alert.alert_type.title()} Alert Created",
+                "description": (
+                    f"{alert.alert_type.title()} alert "
+                    f"created for {alert.city.name}."
+                ),
+                "city": alert.city.name,
+                "created_at": alert.created_at,
+            }
+            alert_activity.append(data)
+
+        notifications = (
+            AlertNotification.objects.filter(alert__user=user)
+            .select_related("alert","alert__city")
+            .only(
+                "message",
+                "created_at",
+                "alert__city__name",
+            )
+            .order_by("-created_at")[:limit]
+        )
+
+        notification_activity = []
+        for notification in notifications:
+            data = {
+                "type": "notification",
+                "title": "Weather Alert Triggered",
+                "description": notification.message,
+                "city": notification.alert.city.name,
+                "created_at": notification.created_at,
+            }
+            notification_activity.append(data)
+
+        activity = list(
+            chain(
+                weather_activity,
+                alert_activity,
+                notification_activity,
+            )
+        )
+
+        activity.sort(key=lambda item:item["created_at"],reverse=True)
+        
+        return activity[:limit]
+        
+
