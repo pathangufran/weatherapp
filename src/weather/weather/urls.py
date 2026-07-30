@@ -24,5 +24,6 @@ urlpatterns = [
     path('analytics/', include('analytics.urls')),
     path('cities/', include('cities.urls')),
     path('weatherapp/', include('weatherapp.urls')),
-    path('dashboard/', include('dashboard.urls'))
+    path('dashboard/', include('dashboard.urls')),
+    path('heath/', include('common.health.urls'))
 ]
