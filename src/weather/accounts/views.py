@@ -8,10 +8,13 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.hashers import make_password
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.db import IntegrityError
+from common.throttling import RegisterThrottle,LoginThrottle,RefreshThrottle
 
 logger = logging.getLogger(__name__)
 
 class Register(APIView):
+
+    throttle_classes = [RegisterThrottle]
 
     def post(self,request):
 
@@ -62,6 +65,8 @@ class Register(APIView):
     
 class LogIn(APIView):
 
+    throttle_classes = [LoginThrottle]
+
     def post(self,request):
 
         username = request.data.get('username')
@@ -101,6 +106,8 @@ class LogIn(APIView):
             )
         
 class RefreshTokenView(APIView):
+
+    throttle_classes = [RefreshThrottle]
 
     def post(self,request):
 

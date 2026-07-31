@@ -10,10 +10,11 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
-from pathlib import Path
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 from datetime import timedelta
+from pythonjsonlogger import jsonlogger
 
 load_dotenv()
 
@@ -56,6 +57,21 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+
+        "anon": "100/hour",
+        "user": "1000/hour",
+        "login": "5/min",
+        "register": "3/min",
+        "refresh": "20/min",
+        "weather": "100/min",
+        "dashboard": "60/min",
+        "alerts": "30/min",
+    }
 }
 
 SIMPLE_JWT = {
@@ -165,26 +181,22 @@ STATIC_URL = 'static/'
 
 AUTH_USER_MODEL = 'accounts.AuthUser'
 
-import os
 
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
-
     "formatters": {
-        "standard": {
-            "format": "[{asctime}] {levelname} {name}: {message}",
-            "style": "{",
-        },
+        "json": {
+            "()": "pythonjsonlogger.jsonlogger.JsonFormatter",
+            "format": "%(asctime)s %(levelname)s %(name)s %(message)s",
+        }
     },
 
     "handlers": {
-
         "console": {
             "class": "logging.StreamHandler",
-            "formatter": "standard",
+            "formatter": "json",
         },
-
         "file": {
             "class": "logging.FileHandler",
             "filename": os.path.join(BASE_DIR, "logs", "weather.log"),

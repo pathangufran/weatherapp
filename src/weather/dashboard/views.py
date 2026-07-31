@@ -4,12 +4,14 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from dashboard.services import DashboardService
+from common.throttling import DashboardThrottle
 
 logger = logging.getLogger(__name__)
 
 class DashboardSummary(APIView):
 
     permission_classes = [IsAuthenticated]
+    throttle_classes = [DashboardThrottle]
 
     def get(self,request):
 
@@ -41,6 +43,7 @@ class DashboardSummary(APIView):
 class DashboardWeatherAnalytics(APIView):
 
     permission_classes = [IsAuthenticated]
+    throttle_classes = [DashboardThrottle]
 
     def get(self,request):
 
@@ -73,6 +76,7 @@ class DashboardWeatherAnalytics(APIView):
 class WeatherTrends(APIView):
 
     permission_classes = [IsAuthenticated]
+    throttle_classes = [DashboardThrottle]
 
     def  get(self,request):
 
@@ -119,6 +123,7 @@ class WeatherTrends(APIView):
 class DashboardCityAnalytics(APIView):
 
     permission_classes = [IsAuthenticated]
+    throttle_classes = [DashboardThrottle]
 
     def get(self,request):
 
@@ -150,6 +155,7 @@ class DashboardCityAnalytics(APIView):
 class DashboardAlertAnalytics(APIView):
 
     permission_classes = [IsAuthenticated]
+    throttle_classes = [DashboardThrottle]
 
     def get(self,request):
 
@@ -180,6 +186,7 @@ class DashboardAlertAnalytics(APIView):
 class DashboardNotificationAnalytics(APIView):
 
     permission_classes = [IsAuthenticated]
+    throttle_classes = [DashboardThrottle]
 
     def get(self,request):
 
@@ -212,6 +219,7 @@ class DashboardNotificationAnalytics(APIView):
 class DashboardActivity(APIView):
 
     permission_classes = [IsAuthenticated]
+    throttle_classes = [DashboardThrottle]
 
     def get(self,request):
     

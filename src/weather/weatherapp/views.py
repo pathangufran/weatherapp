@@ -12,12 +12,14 @@ from django.core.paginator import Paginator,EmptyPage
 from django.db.models import Avg,Max,Min,Count,Subquery,OuterRef
 from weatherapp.redis_service import RedisService
 from weatherapp.repository import WeatherRepository
+from common.throttling import WeatherThrottle
 
 logger = logging.getLogger(__name__)
 
 class WeatherCurrent(APIView):
 
     permission_classes = [IsAuthenticated]
+    throttle_classes = [WeatherThrottle]
 
     def post(self, request):
 
@@ -90,6 +92,7 @@ class WeatherCurrent(APIView):
 class LatestWeather(APIView):
 
     permission_classes = [IsAuthenticated]
+    throttle_classes = [WeatherThrottle]
 
     def get(self,request):
 
@@ -147,6 +150,7 @@ class LatestWeather(APIView):
 class WeatherForecast(APIView):
 
     permission_classes = [IsAuthenticated]
+    throttle_classes = [WeatherThrottle]
 
     def post(self, request):
 
@@ -201,6 +205,7 @@ class WeatherForecast(APIView):
 class WeatherHistory(APIView):
 
     permission_classes = [IsAuthenticated]
+    throttle_classes = [WeatherThrottle]
 
     def get(self,request):
 
@@ -317,6 +322,7 @@ class WeatherHistory(APIView):
 class WeatherStatistics(APIView):
 
     permission_classes = [IsAuthenticated]
+    throttle_classes = [WeatherThrottle]
 
     def get(self,request):
 
@@ -384,6 +390,7 @@ class WeatherStatistics(APIView):
 class WeatherCompare(APIView):
 
     permission_classes = [IsAuthenticated]
+    throttle_classes = [WeatherThrottle]
     
     def get(self,request):
 

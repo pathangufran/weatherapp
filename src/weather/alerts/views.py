@@ -10,12 +10,14 @@ from cities.models import City,UserCity
 from django.core.paginator import Paginator,EmptyPage
 from alerts.utils import notification_response
 from alerts.redis_service import AlertRedisService
+from common.throttling import AlertThrottle
 
 logger = logging.getLogger(__name__)
 
 class CreateAlert(APIView):
 
     permission_classes = [IsAuthenticated]
+    throttle_classes = [AlertThrottle]
     
     def post(self,request):
 
@@ -87,6 +89,7 @@ class CreateAlert(APIView):
 class GetAlerts(APIView):
 
     permission_classes = [IsAuthenticated]
+    throttle_classes = [AlertThrottle]
 
     def get(self,request):
 
@@ -172,6 +175,7 @@ class GetAlerts(APIView):
 class AlertDetails(APIView):
 
     permission_classes = [IsAuthenticated]
+    throttle_classes = [AlertThrottle]
 
     def get(self,request):
 
@@ -227,6 +231,7 @@ class AlertDetails(APIView):
 class UpdateAlert(APIView):
 
     permission_classes = [IsAuthenticated]
+    throttle_classes = [AlertThrottle]
 
     def put(self,request):
 
@@ -331,6 +336,7 @@ class UpdateAlert(APIView):
 class AlertStatus(APIView):
 
     permission_classes = [IsAuthenticated]
+    throttle_classes = [AlertThrottle]
 
     def patch(self,request):
 
@@ -390,6 +396,7 @@ class AlertStatus(APIView):
 class DeleteAlert(APIView):
     
     permission_classes = [IsAuthenticated]
+    throttle_classes = [AlertThrottle]
 
     def delete(self,request):
 
