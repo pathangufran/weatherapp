@@ -11,8 +11,14 @@ dependencies = [
     "djangorestframework>=3.17.1",
     "djangorestframework-simplejwt>=5.5.1",
     "flower>=2.0.1",
+    "gunicorn>=26.0.0",
     "polars>=1.43.0",
     "psycopg[binary]>=3.3.4",
     "python-dotenv>=1.2.2",
     "requests>=2.34.2",
+]
+
+[dependency-groups]
+prod = [
+    "gunicorn>=26.0.0",
 ]
