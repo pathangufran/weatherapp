@@ -13,9 +13,15 @@ from django.db.models import Avg,Max,Min,Count,Subquery,OuterRef
 from weatherapp.redis_service import RedisService
 from weatherapp.repository import WeatherRepository
 from common.throttling import WeatherThrottle
+from drf_spectacular.utils import (extend_schema,)
 
 logger = logging.getLogger(__name__)
 
+@extend_schema(
+    summary="Get Current Weather",
+    description="Returns the latest weather for a tracked city.",
+    tags=["Weather"],
+)
 class WeatherCurrent(APIView):
 
     permission_classes = [IsAuthenticated]

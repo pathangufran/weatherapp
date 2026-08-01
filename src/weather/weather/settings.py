@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'weatherapp',
     'dashboard',
     'rest_framework',
+    'drf_spectacular',
 ]
 
 REST_FRAMEWORK = {
@@ -71,7 +72,10 @@ REST_FRAMEWORK = {
         "weather": "100/min",
         "dashboard": "60/min",
         "alerts": "30/min",
-    }
+    },
+    "DEFAULT_SCHEMA_CLASS":
+
+        "drf_spectacular.openapi.AutoSchema"
 }
 
 SIMPLE_JWT = {
@@ -254,5 +258,29 @@ CELERY_BEAT_SCHEDULE = {
 
         "schedule": 1800.0,
     }
+
+}
+
+SPECTACULAR_SETTINGS = {
+
+    "TITLE": "Weather Tracker API",
+
+    "DESCRIPTION": "Production Ready Weather Tracking Backend",
+
+    "VERSION": "1.0.0",
+
+    "SERVE_INCLUDE_SCHEMA": False,
+
+    "SWAGGER_UI_SETTINGS": {
+
+        "deepLinking": True,
+
+        "displayRequestDuration": True,
+
+        "persistAuthorization": True,
+
+    },
+
+    "COMPONENT_SPLIT_REQUEST": True,
 
 }

@@ -10,6 +10,7 @@ dependencies = [
     "django-redis>=7.0.0",
     "djangorestframework>=3.17.1",
     "djangorestframework-simplejwt>=5.5.1",
+    "drf-spectacular>=0.30.0",
     "flower>=2.0.1",
     "gunicorn>=26.0.0",
     "polars>=1.43.0",
